@@ -29,7 +29,7 @@ export function useTasks(userId: string | null) {
 
     // Realtime subscription
     const channel = supabase
-      .channel('tasks-channel')
+      .channel(`tasks-channel-${userId}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks' }, () => {
         fetchTasks()
       })
@@ -43,14 +43,15 @@ export function useTasks(userId: string | null) {
   const createTask = useCallback(
     async (
       title: string,
-      opts?: { description?: string; priority?: Priority; due_date?: string }
+      opts?: { description?: string; priority?: Priority; due_date?: string; status?: Status }
     ) => {
       if (!userId) return null
-      const maxPosition = tasks.filter((t) => t.status === 'todo').length
+      const targetStatus = opts?.status ?? 'todo'
+      const maxPosition = tasks.filter((t) => t.status === targetStatus).length
       const newTask = {
         title,
         description: opts?.description ?? null,
-        status: 'todo' as Status,
+        status: targetStatus,
         priority: opts?.priority ?? 'normal',
         due_date: opts?.due_date ?? null,
         position: maxPosition,

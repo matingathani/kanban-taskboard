@@ -77,7 +77,9 @@ export function Board({
     if (activeTask.status === targetStatus) {
       // Reorder within same column
       const oldIndex = columnTasks.findIndex((t) => t.id === active.id)
-      const newIndex = columnTasks.findIndex((t) => t.id === over.id)
+      let newIndex = columnTasks.findIndex((t) => t.id === over.id)
+      // Dropped on column droppable (not a card) → move to end
+      if (newIndex === -1) newIndex = columnTasks.length - 1
       if (oldIndex === newIndex) return
       const reordered = arrayMove(columnTasks, oldIndex, newIndex)
       reordered.forEach((t, i) => {

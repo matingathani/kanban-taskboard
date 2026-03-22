@@ -74,19 +74,16 @@ export default function App() {
   }, [])
 
   // Keep selectedTask in sync with task updates
+  const selectedTaskId = selectedTask?.id
   useEffect(() => {
-    if (selectedTask) {
-      const updated = tasks.find((t) => t.id === selectedTask.id)
-      if (updated) setSelectedTask(updated)
-      else setSelectedTask(null)
-    }
-  }, [tasks])
+    if (!selectedTaskId) return
+    const updated = tasks.find((t) => t.id === selectedTaskId)
+    if (updated) setSelectedTask(updated)
+    else setSelectedTask(null)
+  }, [tasks, selectedTaskId])
 
   const handleCreateTask = async (title: string, status?: Status) => {
-    const task = await createTask(title, {})
-    if (task && status && status !== 'todo') {
-      await updateTask(task.id, { status })
-    }
+    await createTask(title, { status })
   }
 
   const handleUpdateTask = (id: string, patch: Partial<Task>) => {
