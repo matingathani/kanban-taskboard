@@ -11,16 +11,25 @@ export function useTasks(userId: string | null) {
     if (!userId) return
     setLoading(true)
     setError(null)
-    const { data, error } = await supabase
-      .from('tasks')
-      .select('*')
-      .order('position', { ascending: true })
-    if (error) {
-      setError(error.message)
-    } else {
-      setTasks(data as Task[])
+    try {
+      const controller = new AbortController()
+      const timeout = setTimeout(() => controller.abort(), 10000)
+      const { data, error } = await supabase
+        .from('tasks')
+        .select('*')
+        .order('position', { ascending: true })
+        .abortSignal(controller.signal)
+      clearTimeout(timeout)
+      if (error) {
+        setError(error.message)
+      } else {
+        setTasks(data as Task[])
+      }
+    } catch {
+      setError('Failed to load tasks. Please refresh.')
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   }, [userId])
 
   useEffect(() => {
