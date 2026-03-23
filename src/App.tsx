@@ -106,8 +106,8 @@ export default function App() {
     deleteTask(id)
   }
 
-  if (authLoading || (loading && tasks.length === 0)) return <LoadingScreen />
   if (authError) return <ErrorScreen message={authError} />
+  if (authLoading || (loading && tasks.length === 0)) return <LoadingScreen />
   if (error && tasks.length === 0) return <ErrorScreen message={error} />
 
   return (
