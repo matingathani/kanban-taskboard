@@ -49,14 +49,26 @@ export default function App() {
 
   // Anonymous auth on mount
   useEffect(() => {
+    const withTimeout = <T,>(promise: Promise<T>, ms: number): Promise<T> =>
+      Promise.race([
+        promise,
+        new Promise<T>((_, reject) =>
+          setTimeout(() => reject(new Error('Connection timed out. Check your Supabase URL and anon key.')), ms)
+        ),
+      ])
+
     const init = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession()
+        const { data: { session } } = await withTimeout(supabase.auth.getSession(), 8000)
         if (session?.user) {
           setUserId(session.user.id)
         } else {
-          const { data, error } = await supabase.auth.signInAnonymously()
-          if (error) throw error
+          const { data, error } = await withTimeout(supabase.auth.signInAnonymously(), 8000)
+          if (error) throw new Error(
+            error.message === 'Anonymous sign-ins are disabled'
+              ? 'Anonymous sign-ins are not enabled. Enable them in Supabase → Authentication → Sign In / Sign Up → Anonymous sign-ins.'
+              : error.message
+          )
           setUserId(data.user?.id ?? null)
         }
       } catch (err) {
