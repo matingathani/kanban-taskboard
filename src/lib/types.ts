@@ -1,6 +1,22 @@
 export type Priority = 'low' | 'normal' | 'high'
 export type Status = 'todo' | 'in_progress' | 'in_review' | 'done'
 
+export interface TeamMember {
+  id: string
+  name: string
+  email: string | null
+  user_id: string
+  created_at: string
+}
+
+export interface NewTaskData {
+  title: string
+  description?: string
+  priority?: Priority
+  due_date?: string
+  assignee_id?: string | null
+}
+
 export interface Task {
   id: string
   title: string
@@ -8,6 +24,7 @@ export interface Task {
   status: Status
   priority: Priority
   due_date: string | null
+  assignee_id: string | null
   position: number
   user_id: string
   created_at: string

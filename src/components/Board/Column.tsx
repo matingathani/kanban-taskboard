@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useDroppable } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { Plus, ClipboardList } from 'lucide-react'
-import type { Task, Status } from '@/lib/types'
+import type { Task, Status, TeamMember, NewTaskData, Priority } from '@/lib/types'
 import { TaskCard } from './TaskCard'
 
 interface Props {
@@ -11,13 +11,18 @@ interface Props {
   color: string
   accent: string
   tasks: Task[]
+  teamMembers: TeamMember[]
   onTaskClick: (task: Task) => void
-  onAddTask: (title: string) => void
+  onAddTask: (data: NewTaskData) => void
 }
 
-export function Column({ id, label, color, accent, tasks, onTaskClick, onAddTask }: Props) {
+export function Column({ id, label, color, accent, tasks, teamMembers, onTaskClick, onAddTask }: Props) {
   const [adding, setAdding] = useState(false)
   const [newTitle, setNewTitle] = useState('')
+  const [newDescription, setNewDescription] = useState('')
+  const [newPriority, setNewPriority] = useState<Priority>('normal')
+  const [newDueDate, setNewDueDate] = useState('')
+  const [newAssigneeId, setNewAssigneeId] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
   const { setNodeRef, isOver } = useDroppable({ id })
@@ -26,19 +31,33 @@ export function Column({ id, label, color, accent, tasks, onTaskClick, onAddTask
     if (adding) inputRef.current?.focus()
   }, [adding])
 
+  const resetForm = () => {
+    setNewTitle('')
+    setNewDescription('')
+    setNewPriority('normal')
+    setNewDueDate('')
+    setNewAssigneeId(null)
+  }
+
   const handleAdd = () => {
     const trimmed = newTitle.trim()
     if (trimmed) {
-      onAddTask(trimmed)
+      onAddTask({
+        title: trimmed,
+        description: newDescription.trim() || undefined,
+        priority: newPriority,
+        due_date: newDueDate || undefined,
+        assignee_id: newAssigneeId,
+      })
     }
-    setNewTitle('')
+    resetForm()
     setAdding(false)
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') handleAdd()
     if (e.key === 'Escape') {
-      setNewTitle('')
+      resetForm()
       setAdding(false)
     }
   }
@@ -77,7 +96,7 @@ export function Column({ id, label, color, accent, tasks, onTaskClick, onAddTask
       >
         <SortableContext items={tasks.map((t) => t.id)} strategy={verticalListSortingStrategy}>
           {tasks.map((task) => (
-            <TaskCard key={task.id} task={task} onClick={() => onTaskClick(task)} />
+            <TaskCard key={task.id} task={task} teamMembers={teamMembers} onClick={() => onTaskClick(task)} />
           ))}
         </SortableContext>
 
@@ -89,34 +108,78 @@ export function Column({ id, label, color, accent, tasks, onTaskClick, onAddTask
           </div>
         )}
 
-        {/* Add task inline input */}
+        {/* Add task form */}
         {adding && (
-          <div className="bg-white rounded-lg border border-blue-300 shadow-sm p-2.5">
+          <div className="bg-white rounded-lg border border-blue-300 shadow-sm p-3 space-y-2.5">
+            {/* Title */}
             <input
               ref={inputRef}
               value={newTitle}
               onChange={(e) => setNewTitle(e.target.value)}
               onKeyDown={handleKeyDown}
-              onBlur={handleAdd}
               placeholder="Task title..."
-              className="w-full text-sm text-slate-800 placeholder-slate-400 outline-none"
+              className="w-full text-sm text-slate-800 placeholder-slate-400 outline-none border-b border-slate-100 pb-1.5"
             />
-            <div className="mt-2 flex gap-1.5">
+
+            {/* Description */}
+            <textarea
+              value={newDescription}
+              onChange={(e) => setNewDescription(e.target.value)}
+              placeholder="Description (optional)"
+              rows={2}
+              className="w-full resize-none text-xs text-slate-700 placeholder-slate-400 outline-none border border-slate-200 rounded px-2 py-1.5 focus:border-blue-400"
+            />
+
+            {/* Priority */}
+            <div className="flex gap-1">
+              {(['low', 'normal', 'high'] as Priority[]).map((p) => (
+                <button
+                  key={p}
+                  type="button"
+                  onMouseDown={(e) => { e.preventDefault(); setNewPriority(p) }}
+                  className={`flex-1 text-xs py-1 rounded border font-medium capitalize transition-all ${
+                    newPriority === p
+                      ? 'border-blue-500 bg-blue-50 text-blue-700'
+                      : 'border-slate-200 text-slate-500 hover:border-slate-300'
+                  }`}
+                >
+                  {p}
+                </button>
+              ))}
+            </div>
+
+            {/* Due date */}
+            <input
+              type="date"
+              value={newDueDate}
+              onChange={(e) => setNewDueDate(e.target.value)}
+              className="w-full text-xs border border-slate-200 rounded px-2 py-1.5 text-slate-700 outline-none focus:border-blue-400"
+            />
+
+            {/* Assignee */}
+            {teamMembers.length > 0 && (
+              <select
+                value={newAssigneeId ?? ''}
+                onChange={(e) => setNewAssigneeId(e.target.value || null)}
+                className="w-full text-xs border border-slate-200 rounded px-2 py-1.5 text-slate-700 outline-none focus:border-blue-400 bg-white"
+              >
+                <option value="">Unassigned</option>
+                {teamMembers.map((m) => (
+                  <option key={m.id} value={m.id}>{m.name}</option>
+                ))}
+              </select>
+            )}
+
+            {/* Actions */}
+            <div className="flex gap-1.5 pt-0.5">
               <button
-                onMouseDown={(e) => {
-                  e.preventDefault()
-                  handleAdd()
-                }}
+                onMouseDown={(e) => { e.preventDefault(); handleAdd() }}
                 className="text-xs bg-blue-600 text-white px-2.5 py-1 rounded font-medium hover:bg-blue-700 transition-colors"
               >
                 Add
               </button>
               <button
-                onMouseDown={(e) => {
-                  e.preventDefault()
-                  setNewTitle('')
-                  setAdding(false)
-                }}
+                onMouseDown={(e) => { e.preventDefault(); resetForm(); setAdding(false) }}
                 className="text-xs text-slate-500 px-2 py-1 rounded hover:bg-slate-100 transition-colors"
               >
                 Cancel

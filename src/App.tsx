@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useTasks } from '@/hooks/useTasks'
+import { useTeamMembers } from '@/hooks/useTeamMembers'
 import { Board } from '@/components/Board/Board'
 import { Header } from '@/components/Header/Header'
 import { TaskDetail } from '@/components/TaskDetail/TaskDetail'
-import type { Task, Status } from '@/lib/types'
+import type { Task, Status, NewTaskData } from '@/lib/types'
 
 function LoadingScreen() {
   return (
@@ -46,6 +47,7 @@ export default function App() {
   const [priorityFilter, setPriorityFilter] = useState('')
 
   const { tasks, loading, error, createTask, updateTask, deleteTask } = useTasks(userId)
+  const { teamMembers } = useTeamMembers(userId)
 
   // Anonymous auth on mount
   useEffect(() => {
@@ -94,8 +96,14 @@ export default function App() {
     else setSelectedTask(null)
   }, [tasks, selectedTaskId])
 
-  const handleCreateTask = async (title: string, status?: Status) => {
-    await createTask(title, { status })
+  const handleCreateTask = async (data: NewTaskData, status?: Status) => {
+    await createTask(data.title, {
+      description: data.description,
+      priority: data.priority,
+      due_date: data.due_date,
+      assignee_id: data.assignee_id,
+      status,
+    })
   }
 
   const handleUpdateTask = (id: string, patch: Partial<Task>) => {
@@ -132,6 +140,7 @@ export default function App() {
           tasks={tasks}
           searchQuery={searchQuery}
           priorityFilter={priorityFilter}
+          teamMembers={teamMembers}
           onTaskClick={setSelectedTask}
           onCreateTask={handleCreateTask}
           onUpdateTask={handleUpdateTask}
@@ -142,6 +151,7 @@ export default function App() {
         <TaskDetail
           task={selectedTask}
           userId={userId}
+          teamMembers={teamMembers}
           onClose={() => setSelectedTask(null)}
           onUpdate={handleUpdateTask}
           onDelete={handleDeleteTask}

@@ -52,7 +52,7 @@ export function useTasks(userId: string | null) {
   const createTask = useCallback(
     async (
       title: string,
-      opts?: { description?: string; priority?: Priority; due_date?: string; status?: Status }
+      opts?: { description?: string; priority?: Priority; due_date?: string; status?: Status; assignee_id?: string | null }
     ) => {
       if (!userId) return null
       const targetStatus = opts?.status ?? 'todo'
@@ -63,6 +63,7 @@ export function useTasks(userId: string | null) {
         status: targetStatus,
         priority: opts?.priority ?? 'normal',
         due_date: opts?.due_date ?? null,
+        assignee_id: opts?.assignee_id ?? null,
         position: maxPosition,
         user_id: userId,
       }

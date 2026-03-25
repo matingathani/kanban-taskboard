@@ -1,12 +1,13 @@
 import { useState, useEffect, useRef } from 'react'
-import { X, Trash2, Calendar, Flag } from 'lucide-react'
-import type { Task, Priority, Status } from '@/lib/types'
+import { X, Trash2, Calendar, Flag, Users } from 'lucide-react'
+import type { Task, Priority, Status, TeamMember } from '@/lib/types'
 import { COLUMNS } from '@/lib/types'
 import { CommentList } from './CommentList'
 
 interface Props {
   task: Task | null
   userId: string
+  teamMembers: TeamMember[]
   onClose: () => void
   onUpdate: (id: string, patch: Partial<Task>) => void
   onDelete: (id: string) => void
@@ -18,7 +19,7 @@ const priorities: { value: Priority; label: string; color: string }[] = [
   { value: 'high', label: 'High', color: 'text-red-600' },
 ]
 
-export function TaskDetail({ task, userId, onClose, onUpdate, onDelete }: Props) {
+export function TaskDetail({ task, userId, teamMembers, onClose, onUpdate, onDelete }: Props) {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [editingTitle, setEditingTitle] = useState(false)
@@ -206,6 +207,24 @@ export function TaskDetail({ task, userId, onClose, onUpdate, onDelete }: Props)
               onChange={(e) => onUpdate(task.id, { due_date: e.target.value || null })}
               className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 text-slate-700 outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition"
             />
+          </div>
+
+          {/* Assignee */}
+          <div>
+            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">
+              <Users size={11} className="inline mr-1" />
+              Assignee
+            </label>
+            <select
+              value={task.assignee_id ?? ''}
+              onChange={(e) => onUpdate(task.id, { assignee_id: e.target.value || null })}
+              className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 text-slate-700 outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition bg-white"
+            >
+              <option value="">Unassigned</option>
+              {teamMembers.map((m) => (
+                <option key={m.id} value={m.id}>{m.name}</option>
+              ))}
+            </select>
           </div>
 
           {/* Divider */}

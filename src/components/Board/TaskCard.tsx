@@ -1,11 +1,12 @@
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { Calendar, AlertCircle, GripVertical } from 'lucide-react'
-import type { Task } from '@/lib/types'
+import type { Task, TeamMember } from '@/lib/types'
 import { getDueDateStatus, formatDueDate } from '@/lib/utils'
 
 interface Props {
   task: Task
+  teamMembers: TeamMember[]
   onClick: () => void
 }
 
@@ -21,7 +22,7 @@ const dueDateConfig = {
   normal: 'bg-slate-100 text-slate-600',
 }
 
-export function TaskCard({ task, onClick }: Props) {
+export function TaskCard({ task, teamMembers, onClick }: Props) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: task.id,
     data: { task },
@@ -34,6 +35,7 @@ export function TaskCard({ task, onClick }: Props) {
 
   const dueDateStatus = getDueDateStatus(task.due_date)
   const priority = priorityConfig[task.priority]
+  const assignee = task.assignee_id ? teamMembers.find((m) => m.id === task.assignee_id) ?? null : null
 
   return (
     <div
@@ -80,6 +82,15 @@ export function TaskCard({ task, onClick }: Props) {
                 {dueDateStatus === 'overdue' && <AlertCircle size={10} />}
                 {dueDateStatus !== 'overdue' && <Calendar size={10} />}
                 {formatDueDate(task.due_date)}
+              </span>
+            )}
+
+            {assignee && (
+              <span
+                className="ml-auto w-5 h-5 rounded-full bg-violet-100 text-violet-700 text-[10px] font-semibold flex items-center justify-center shrink-0"
+                title={assignee.name}
+              >
+                {assignee.name.slice(0, 2).toUpperCase()}
               </span>
             )}
           </div>

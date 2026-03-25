@@ -11,7 +11,7 @@ import {
   type DragEndEvent,
 } from '@dnd-kit/core'
 import { sortableKeyboardCoordinates, arrayMove } from '@dnd-kit/sortable'
-import type { Task, Status } from '@/lib/types'
+import type { Task, Status, TeamMember, NewTaskData } from '@/lib/types'
 import { COLUMNS } from '@/lib/types'
 import { Column } from './Column'
 import { TaskCardOverlay } from './TaskCard'
@@ -20,8 +20,9 @@ interface Props {
   tasks: Task[]
   searchQuery: string
   priorityFilter: string
+  teamMembers: TeamMember[]
   onTaskClick: (task: Task) => void
-  onCreateTask: (title: string, status?: Status) => void
+  onCreateTask: (data: NewTaskData, status?: Status) => void
   onUpdateTask: (id: string, patch: Partial<Task>) => void
 }
 
@@ -29,6 +30,7 @@ export function Board({
   tasks,
   searchQuery,
   priorityFilter,
+  teamMembers,
   onTaskClick,
   onCreateTask,
   onUpdateTask,
@@ -113,8 +115,9 @@ export function Board({
             color={col.color}
             accent={col.accent}
             tasks={getColumnTasks(col.id)}
+            teamMembers={teamMembers}
             onTaskClick={onTaskClick}
-            onAddTask={(title) => onCreateTask(title, col.id)}
+            onAddTask={(data) => onCreateTask(data, col.id)}
           />
         ))}
       </div>
