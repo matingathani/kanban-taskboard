@@ -28,5 +28,31 @@ export function useTeamMembers(userId: string | null) {
     fetchTeamMembers()
   }, [fetchTeamMembers])
 
-  return { teamMembers, loading, error }
+  const createTeamMember = useCallback(
+    async (name: string, email?: string) => {
+      if (!userId) return
+      const { data, error } = await supabase
+        .from('team_members')
+        .insert({ name, email: email || null, user_id: userId })
+        .select()
+        .single()
+      if (error) {
+        setError(error.message)
+      } else {
+        setTeamMembers((prev) => [...prev, data as TeamMember].sort((a, b) => a.name.localeCompare(b.name)))
+      }
+    },
+    [userId]
+  )
+
+  const deleteTeamMember = useCallback(async (id: string) => {
+    setTeamMembers((prev) => prev.filter((m) => m.id !== id))
+    const { error } = await supabase.from('team_members').delete().eq('id', id)
+    if (error) {
+      setError(error.message)
+      fetchTeamMembers()
+    }
+  }, [fetchTeamMembers])
+
+  return { teamMembers, loading, error, createTeamMember, deleteTeamMember }
 }

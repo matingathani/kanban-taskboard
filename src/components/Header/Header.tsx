@@ -1,16 +1,22 @@
-import { Search, X, SlidersHorizontal } from 'lucide-react'
-import type { Task } from '@/lib/types'
+import { useState } from 'react'
+import { Search, X, SlidersHorizontal, Users } from 'lucide-react'
+import type { Task, TeamMember } from '@/lib/types'
 import { StatsBar } from './StatsBar'
+import { TeamModal } from './TeamModal'
 
 interface Props {
   tasks: Task[]
   searchQuery: string
   priorityFilter: string
+  teamMembers: TeamMember[]
   onSearchChange: (q: string) => void
   onPriorityFilterChange: (p: string) => void
+  onAddTeamMember: (name: string, email?: string) => void
+  onDeleteTeamMember: (id: string) => void
 }
 
-export function Header({ tasks, searchQuery, priorityFilter, onSearchChange, onPriorityFilterChange }: Props) {
+export function Header({ tasks, searchQuery, priorityFilter, teamMembers, onSearchChange, onPriorityFilterChange, onAddTeamMember, onDeleteTeamMember }: Props) {
+  const [showTeam, setShowTeam] = useState(false)
   return (
     <header className="bg-[#0f172a] text-white px-6 py-4 flex-shrink-0">
       <div className="flex items-center justify-between gap-4 flex-wrap">
@@ -60,9 +66,32 @@ export function Header({ tasks, searchQuery, priorityFilter, onSearchChange, onP
           </div>
         </div>
 
-        {/* Stats */}
-        <StatsBar tasks={tasks} />
+        {/* Team + Stats */}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setShowTeam(true)}
+            className="flex items-center gap-1.5 text-xs text-white/60 hover:text-white bg-white/10 hover:bg-white/15 border border-white/10 px-3 py-2 rounded-lg transition-colors"
+          >
+            <Users size={13} />
+            Team
+            {teamMembers.length > 0 && (
+              <span className="bg-violet-500 text-white text-[10px] font-semibold px-1.5 py-0.5 rounded-full">
+                {teamMembers.length}
+              </span>
+            )}
+          </button>
+          <StatsBar tasks={tasks} />
+        </div>
       </div>
+
+      {showTeam && (
+        <TeamModal
+          teamMembers={teamMembers}
+          onAdd={onAddTeamMember}
+          onDelete={onDeleteTeamMember}
+          onClose={() => setShowTeam(false)}
+        />
+      )}
     </header>
   )
 }

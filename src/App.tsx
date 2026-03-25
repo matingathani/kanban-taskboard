@@ -47,7 +47,7 @@ export default function App() {
   const [priorityFilter, setPriorityFilter] = useState('')
 
   const { tasks, loading, error, createTask, updateTask, deleteTask } = useTasks(userId)
-  const { teamMembers } = useTeamMembers(userId)
+  const { teamMembers, createTeamMember, deleteTeamMember } = useTeamMembers(userId)
 
   // Anonymous auth on mount
   useEffect(() => {
@@ -124,8 +124,11 @@ export default function App() {
         tasks={tasks}
         searchQuery={searchQuery}
         priorityFilter={priorityFilter}
+        teamMembers={teamMembers}
         onSearchChange={setSearchQuery}
         onPriorityFilterChange={setPriorityFilter}
+        onAddTeamMember={createTeamMember}
+        onDeleteTeamMember={deleteTeamMember}
       />
 
       <main className="flex-1 flex flex-col overflow-hidden">
